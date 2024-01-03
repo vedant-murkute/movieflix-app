@@ -15,7 +15,7 @@ export const fetchMovies = async (
         : '';
     const url =
       API_BASE_URL +
-      'discover/movie?primary_release_year=' +
+      'discover/movie?sort_by=popularity.desc&primary_release_year=' +
       year +
       '&vote_count.gte=' +
       vote_count +
