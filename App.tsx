@@ -2,117 +2,121 @@
  * Sample React Native App
  * https://github.com/facebook/react-native
  *
+ * Generated with the Redux TypeScript template
+ * https://github.com/rahsheen/react-native-template-redux-typescript
+ *
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import React, {memo, useEffect, useMemo, useState} from 'react';
+import {SafeAreaView, View} from 'react-native';
+import {Header} from './src/components/Header';
+import MovieList from './src/components/MovieList';
+import {Genre, MovieState} from './src/data/types';
+import {fetchGenres, fetchSearchMovies} from './src/services/api';
+import {GenreFilter} from './src/components/GenreFilter';
+import {SearchInput} from './src/components/SearchInput';
+import {SearchList} from './src/components/SearchList';
+import {windowWidth} from './src/data/constants';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const App = () => {
+  const [genres, setGenres] = useState<Array<Genre>>([
+    {
+      id: 0,
+      name: 'ALL',
+      isSelected: true,
+    },
+  ]);
+  const [query, setQuery] = useState<string>('');
+  const [showSearchList, setShowSearchList] = useState(false);
+  const [initialSearchMovies, setInitialSearchMovies] = useState<
+    Array<MovieState>
+  >([]);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  useEffect(() => {
+    fetchGenres()
+      .then(resp => {
+        setGenres([...genres, ...resp]);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }, []);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const handleGenrePress = (genreId: number) => {
+    if (genreId === 0) {
+      const updatedGenres = genres.map((genre: Genre) => {
+        if (genre.id === 0) {
+          return {
+            ...genre,
+            isSelected: true,
+          };
+        }
+        return {...genre, isSelected: false};
+      });
+      setGenres(updatedGenres);
+      setShowSearchList(false);
+    } else {
+      const updatedGenres = genres.map((genre: Genre) => {
+        if (genre.id === genreId) {
+          return {...genre, isSelected: !genre.isSelected};
+        } else if (genre.id === 0) {
+          return {...genre, isSelected: false};
+        }
+        return genre;
+      });
+      setGenres(updatedGenres);
+    }
   };
 
+  const handleChange = (text: string) => {
+    setQuery(text);
+  };
+
+  const handeleSearch = () => {
+    if (query) {
+      console.log(query);
+      fetchSearchMovies(query, 1)
+        .then(resp => {
+          setInitialSearchMovies(resp);
+          setShowSearchList(true);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  };
+
+  const selectedGenreIds = useMemo(() => {
+    return genres
+      .filter(genre => genre.isSelected)
+      .map(genre => genre.id.toString());
+  }, [genres]);
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <SafeAreaView
+      style={{
+        backgroundColor: 'black',
+        flex: 1,
+      }}>
+      <Header>
+        <GenreFilter genres={genres} handlePress={handleGenrePress} />
+        <SearchInput
+          query={query}
+          handleChange={handleChange}
+          handleSearch={handeleSearch}
+        />
+      </Header>
+      <View
+        style={{paddingHorizontal: windowWidth * 0.05, paddingVertical: 10}}>
+        {showSearchList ? (
+          <SearchList query={query} initialSearchMovies={initialSearchMovies} />
+        ) : (
+          <MovieList genreIds={selectedGenreIds} />
+        )}
+      </View>
     </SafeAreaView>
   );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
