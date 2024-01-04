@@ -16,7 +16,7 @@ export const Card: React.FC<CardProps> = ({posterPath, title, ratings}) => {
       <ImageBackground style={styles.image} source={image} resizeMode="cover">
         <View style={styles.captionContainer}>
           <Text style={styles.caption}>{title}</Text>
-          <Text style={styles.caption}>{ratings}</Text>
+          <Text style={styles.caption}>{`${ratings} ⭐`}</Text>
         </View>
       </ImageBackground>
     </View>

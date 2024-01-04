@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +10,15 @@ import {MovieState} from '../data/types';
 import {Card} from './Card';
 import {fetchSearchMovies} from '../services/api';
 
-export const SearchList = ({initialSearchMovies, query}) => {
+type SearchListProps = {
+  initialSearchMovies: Array<MovieState>;
+  query: string;
+};
+
+export const SearchList: React.FC<SearchListProps> = ({
+  initialSearchMovies,
+  query,
+}) => {
   const [searchMovies, setSearchMovies] =
     useState<Array<MovieState>>(initialSearchMovies);
   const [page, setPage] = useState(1);
@@ -36,6 +44,11 @@ export const SearchList = ({initialSearchMovies, query}) => {
     }
   };
 
+  const renderItemCallback = useCallback(
+    ({item}: {item: MovieState}) => <Card {...item} />,
+    [],
+  );
+
   return (
     <>
       <View style={{marginVertical: 10}}>
@@ -49,7 +62,7 @@ export const SearchList = ({initialSearchMovies, query}) => {
         numColumns={2}
         horizontal={false}
         data={searchMovies}
-        renderItem={({item}) => <Card {...item} />}
+        renderItem={renderItemCallback}
         keyExtractor={item =>
           item.id.toString() + (Math.random() * 100).toString()
         }
@@ -58,6 +71,9 @@ export const SearchList = ({initialSearchMovies, query}) => {
           loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
         }
         columnWrapperStyle={{justifyContent: 'space-between'}}
+        removeClippedSubviews={true}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
       />
     </>
   );

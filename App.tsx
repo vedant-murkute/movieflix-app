@@ -44,6 +44,7 @@ const App = () => {
   }, []);
 
   const handleGenrePress = (genreId: number) => {
+    setQuery('');
     if (genreId === 0) {
       const updatedGenres = genres.map((genre: Genre) => {
         if (genre.id === 0) {
@@ -108,7 +109,11 @@ const App = () => {
         />
       </Header>
       <View
-        style={{paddingHorizontal: windowWidth * 0.05, paddingVertical: 10}}>
+        style={{
+          paddingHorizontal: windowWidth * 0.05,
+          paddingVertical: 10,
+          flex: 1,
+        }}>
         {showSearchList ? (
           <SearchList query={query} initialSearchMovies={initialSearchMovies} />
         ) : (

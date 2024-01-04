@@ -1,4 +1,4 @@
-import React, {useEffect, useState, memo} from 'react';
+import React, {useEffect, useState, memo, useCallback} from 'react';
 import {ActivityIndicator, SectionList, Text, View} from 'react-native';
 import {fetchMovies} from '../services/api';
 import {Card} from './Card';
@@ -92,36 +92,39 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
     }
   };
 
-  const renderItemRow = ({
-    section,
-    index,
-  }: {
-    section: MovieSection;
-    index: number;
-  }) => {
-    if (index % 2 !== 0) {
-      return null;
-    }
+  const renderItemRow = useCallback(
+    ({section, index}: {section: MovieSection; index: number}) => {
+      if (index % 2 !== 0) {
+        return null;
+      }
 
-    const item = section.data[index];
-    const nextItem = section.data[index + 1];
-    return (
-      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-        <Card {...item} />
-        {nextItem ? <Card {...nextItem}></Card> : <View style={{flex: 1}} />}
-      </View>
-    );
-  };
+      const item = section.data[index];
+      const nextItem = section.data[index + 1];
+      return (
+        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <Card {...item} />
+          {nextItem ? <Card {...nextItem}></Card> : <View style={{flex: 1}} />}
+        </View>
+      );
+    },
+    [],
+  );
+
+  //To reduce performance cost to calculate item sizes
+  // const getItemLayout = sectionListGetItemLayout({
+  //   getItemHeight: () => (350 + 0.04 * windowWidth) / 2,
+  //   getSectionHeaderHeight: () => 45,
+  // });
 
   return (
     <SectionList
       sections={movies}
-      keyExtractor={item =>
-        item.id.toString() + (Math.random() * 100).toString()
+      keyExtractor={(item, index) =>
+        item.id.toString() + (Math.random() * 100).toString() + index.toString()
       }
       renderItem={renderItemRow}
       renderSectionHeader={({section: {sectionTitle}}) => (
-        <View style={{marginTop: 15}}>
+        <View style={{marginTop: 15, height: 45}}>
           <Text style={{color: 'white', fontSize: 30}}>{sectionTitle}</Text>
         </View>
       )}
@@ -140,7 +143,8 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
           {screenLoading ? (
             <ActivityIndicator size="large" color="#0000ff" />
           ) : (
-            movies.length === 0 && (
+            movies.length === 0 &&
+            nextYear >= 2024 && (
               <Text style={{color: 'white', fontSize: 50}}>
                 No Results Found
               </Text>
@@ -152,6 +156,9 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
         loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
       }
       removeClippedSubviews={true}
+      initialNumToRender={6}
+      maxToRenderPerBatch={6}
+      // getItemLayout={getItemLayout}
     />
   );
 };

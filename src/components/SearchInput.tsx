@@ -1,11 +1,23 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Button, StyleSheet, TextInput, View} from 'react-native';
 
 export const SearchInput = ({query, handleChange, handleSearch}) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const borderColor = isFocused ? 'white' : '#484848';
+
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.textInput}
+        onFocus={() => {
+          setIsFocused(true);
+        }}
+        onBlur={() => {
+          setIsFocused(false);
+        }}
+        placeholder="Enter movie title"
+        placeholderTextColor={'rgba(255,255,255,0.5)'}
+        style={{...styles.textInput, borderColor: borderColor}}
         value={query}
         onChangeText={handleChange}
       />
@@ -25,7 +37,6 @@ const styles = StyleSheet.create({
   textInput: {
     color: 'white',
     flex: 1,
-    borderColor: '#484848',
     borderWidth: 1,
     fontSize: 15,
     paddingHorizontal: 10,
