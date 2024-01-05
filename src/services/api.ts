@@ -55,7 +55,7 @@ export const fetchGenres = async (): Promise<Array<Genre>> => {
 export const fetchSearchMovies = async (
   query: string,
   page: number,
-): Promise<Array<MovieState>> => {
+): Promise<{totalResults: number; movies: Array<MovieState>}> => {
   try {
     const url =
       API_BASE_URL +
@@ -72,7 +72,7 @@ export const fetchSearchMovies = async (
       posterPath: result.poster_path,
       ratings: result.vote_average,
     }));
-    return movies;
+    return {totalResults: jsonData.total_results, movies: movies};
   } catch (err) {
     throw new Error('Failed to search Movies: ' + err);
   }

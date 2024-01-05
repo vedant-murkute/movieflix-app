@@ -13,8 +13,8 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
   const [prevYear, setPrevYear] = useState<number>(2012);
   const [nextYear, setNextYear] = useState<number>(2012);
   const [loading, setLoading] = useState<boolean>(false);
+  const [listLoading, setListLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [screenLoading, setScreenLoading] = useState(false);
 
   useEffect(() => {
     if (prevYear !== 2012) {
@@ -22,9 +22,9 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
       fetchMovies(prevYear.toString(), genreIds)
         .then(resp => {
           if (resp.length !== 0) {
-            setMovies([
+            setMovies(prevMovies => [
               {sectionTitle: prevYear.toString(), data: resp},
-              ...movies,
+              ...prevMovies,
             ]);
           }
         })
@@ -44,8 +44,8 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
       fetchMovies(nextYear.toString(), genreIds)
         .then(resp => {
           if (resp.length !== 0) {
-            setMovies([
-              ...movies,
+            setMovies(prevMovies => [
+              ...prevMovies,
               {sectionTitle: nextYear.toString(), data: resp},
             ]);
           }
@@ -65,7 +65,7 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
     setMovies([]);
     setNextYear(2012);
     setPrevYear(2012);
-    setScreenLoading(true);
+    setListLoading(true);
     fetchMovies('2012', genreIds)
       .then(resp => {
         if (resp.length !== 0) {
@@ -76,12 +76,12 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
         console.log(err);
       })
       .finally(() => {
-        setScreenLoading(false);
+        setListLoading(false);
       });
   }, [genreIds]);
 
   const handleEndReached = () => {
-    if (nextYear < 2024 && !screenLoading && !loading) {
+    if (nextYear < 2024 && !loading && !listLoading) {
       setNextYear(prev => prev + 1);
     }
   };
@@ -110,7 +110,7 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
     [],
   );
 
-  //To reduce performance cost to calculate item sizes
+  //To reduce performance cost, calculate item sizes
   // const getItemLayout = sectionListGetItemLayout({
   //   getItemHeight: () => (350 + 0.04 * windowWidth) / 2,
   //   getSectionHeaderHeight: () => 45,
@@ -140,7 +140,7 @@ const MovieList = ({genreIds}: {genreIds: Array<string>}) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-          {screenLoading ? (
+          {listLoading ? (
             <ActivityIndicator size="large" color="#0000ff" />
           ) : (
             movies.length === 0 &&

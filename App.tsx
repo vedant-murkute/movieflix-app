@@ -8,15 +8,15 @@
  * @format
  */
 
-import React, {memo, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import {Header} from './src/components/Header';
 import MovieList from './src/components/MovieList';
-import {Genre, MovieState} from './src/data/types';
-import {fetchGenres, fetchSearchMovies} from './src/services/api';
+import {Genre} from './src/data/types';
+import {fetchGenres} from './src/services/api';
 import {GenreFilter} from './src/components/GenreFilter';
 import {SearchInput} from './src/components/SearchInput';
-import {SearchList} from './src/components/SearchList';
+import SearchList from './src/components/SearchList';
 import {windowWidth} from './src/data/constants';
 
 const App = () => {
@@ -28,15 +28,13 @@ const App = () => {
     },
   ]);
   const [query, setQuery] = useState<string>('');
+  const [triggerSearch, setTriggerSearch] = useState(true);
   const [showSearchList, setShowSearchList] = useState(false);
-  const [initialSearchMovies, setInitialSearchMovies] = useState<
-    Array<MovieState>
-  >([]);
 
   useEffect(() => {
     fetchGenres()
       .then(resp => {
-        setGenres([...genres, ...resp]);
+        setGenres(prevGenres => [...prevGenres, ...resp]);
       })
       .catch(err => {
         console.log(err);
@@ -44,7 +42,6 @@ const App = () => {
   }, []);
 
   const handleGenrePress = (genreId: number) => {
-    setQuery('');
     if (genreId === 0) {
       const updatedGenres = genres.map((genre: Genre) => {
         if (genre.id === 0) {
@@ -56,7 +53,6 @@ const App = () => {
         return {...genre, isSelected: false};
       });
       setGenres(updatedGenres);
-      setShowSearchList(false);
     } else {
       const updatedGenres = genres.map((genre: Genre) => {
         if (genre.id === genreId) {
@@ -68,6 +64,8 @@ const App = () => {
       });
       setGenres(updatedGenres);
     }
+    setQuery('');
+    setShowSearchList(false);
   };
 
   const handleChange = (text: string) => {
@@ -76,15 +74,10 @@ const App = () => {
 
   const handeleSearch = () => {
     if (query) {
-      console.log(query);
-      fetchSearchMovies(query, 1)
-        .then(resp => {
-          setInitialSearchMovies(resp);
-          setShowSearchList(true);
-        })
-        .catch(err => {
-          console.log(err);
-        });
+      setTriggerSearch(prev => !prev);
+      setShowSearchList(true);
+    } else {
+      setShowSearchList(false);
     }
   };
 
@@ -115,7 +108,7 @@ const App = () => {
           flex: 1,
         }}>
         {showSearchList ? (
-          <SearchList query={query} initialSearchMovies={initialSearchMovies} />
+          <SearchList triggerSearch={triggerSearch} query={query} />
         ) : (
           <MovieList genreIds={selectedGenreIds} />
         )}
